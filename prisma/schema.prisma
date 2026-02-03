@@ -1,0 +1,323 @@
+// OLAPP - Marketplace Local para Milagro, Ecuador
+// Schema simplificado: Productos y Categorías vienen de WooCommerce
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// USUARIOS (Perfil - complementa Supabase Auth)
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          UserRole  @default(CUSTOMER)
+  isSuperUser   Boolean   @default(false)  // Acceso a panel de administración
+  phone         String?
+  avatar        String?
+  address       String?
+  neighborhood  String?   // Sector en Milagro
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relaciones
+  businesses        Business[]
+  verifications     BusinessVerification[]
+  orders            Order[]
+  reviews           Review[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  CUSTOMER    // Cliente normal
+  BUSINESS    // Dueño de negocio
+  ADMIN       // Administrador de OLAPP
+}
+
+// ============================================
+// NEGOCIOS / LOCALES
+// ============================================
+
+model Business {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  slug        String    @unique
+  ownerId     String
+
+  // Ubicación
+  address     String
+  neighborhood String   // Sector de Milagro: "Centro", "Unemi", "Estadio", etc
+  latitude    Float?
+  longitude   Float?
+
+  // Contacto
+  phone       String
+  whatsapp    String?
+  email       String?
+  website     String?
+  facebook    String?
+  instagram   String?
+  tiktok      String?
+
+  // Imágenes
+  logo        String?
+  coverImage  String?
+  images      String[]  // Array de URLs
+
+  // Estado
+  status          BusinessStatus @default(PENDING)
+  confirmationsCount Int           @default(0)
+  requiredConfirmations Int        @default(3) // Confirmaciones necesarias para verificar
+
+  // Integración con WooCommerce
+  wooCategoryId Int?     // ID de la categoría en WooCommerce que representa este negocio
+  wooVendorId   Int?     // ID del vendor si usas WCFM Marketplace
+
+  // Horarios (JSON para flexibilidad)
+  openingHours Json?     // {"monday": {"open": "08:00", "close": "20:00"}, ...}
+
+  // Métricas
+  rating      Float     @default(0)
+  reviewCount Int      @default(0)
+
+  // Pagos aceptados
+  acceptsCash    Boolean @default(true)
+  acceptsTransfer Boolean @default(false)
+  acceptsCard    Boolean @default(false)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relaciones
+  owner       User      @relation(fields: [ownerId], references: [id])
+  orders      Order[]
+  reviews     Review[]
+  verifications BusinessVerification[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([wooCategoryId])
+  @@index([createdAt])
+  @@map("businesses")
+}
+
+enum BusinessStatus {
+  PENDING    // Esperando confirmaciones de la comunidad
+  VERIFIED   // Verificado por la comunidad
+  REJECTED   // Rechazado (reportado como falso)
+}
+
+// ============================================
+// VALIDACIÓN COMUNITARIA DE NEGOCIOS
+// ============================================
+
+model BusinessVerification {
+  id         String   @id @default(cuid())
+
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Para prevenir fraudes: verificar IP, fecha, etc
+  ipAddress  String?
+  userAgent  String?
+
+  createdAt  DateTime @default(now())
+
+  @@unique([businessId, userId]) // Un usuario solo puede confirmar una vez por negocio
+  @@index([businessId])
+  @@index([userId])
+  @@map("business_verifications")
+}
+
+// ============================================
+// PEDIDOS
+// ============================================
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+
+  // Cliente
+  customerId      String
+  customer        User        @relation(fields: [customerId], references: [id])
+
+  // Negocio
+  businessId      String
+  business        Business    @relation(fields: [businessId], references: [id])
+
+  // Detalles de entrega
+  deliveryType    DeliveryType
+  deliveryAddress String?     // Solo si es delivery
+  deliveryFee     Float       @default(0)
+
+  // Estado
+  status          OrderStatus @default(PENDING)
+
+  // Pagos
+  paymentMethod   PaymentMethod
+  subtotal        Float
+  total           Float
+
+  // Notas
+  customerNotes   String?
+  businessNotes   String?
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relaciones
+  items           OrderItem[]
+
+  @@index([customerId])
+  @@index([businessId])
+  @@index([status])
+  @@map("orders")
+}
+
+enum DeliveryType {
+  PICKUP    // Recojo en tienda
+  DELIVERY  // Delivery a domicilio
+}
+
+enum OrderStatus {
+  PENDING    // Esperando confirmación
+  CONFIRMED  // Confirmado por negocio
+  PREPARING  // Preparando pedido
+  READY      // Listo para recojo/delivery
+  ON_THE_WAY // En camino
+  DELIVERED  // Entregado
+  CANCELLED  // Cancelado
+}
+
+enum PaymentMethod {
+  CASH          // Efectivo
+  TRANSFER      // Transferencia bancaria
+  CARD          // Tarjeta (si implementamos pasarela)
+}
+
+// ============================================
+// ITEMS DE PEDIDO
+// ============================================
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  quantity    Int
+  price       Float    // Precio al momento de la compra
+  notes       String?
+
+  // Referencia al producto en WooCommerce (no es relación, solo ID)
+  wooProductId Int     // ID del producto en WooCommerce
+
+  // Relaciones
+  orderId     String
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@index([orderId])
+  @@index([wooProductId])
+  @@map("order_items")
+}
+
+// ============================================
+// RESEÑAS
+// ============================================
+
+model Review {
+  id          String   @id @default(cuid())
+  rating      Int      // 1-5 estrellas
+  comment     String?
+
+  // Relaciones
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([businessId])
+  @@index([userId])
+  @@map("reviews")
+}
+
+// ============================================
+// CONTENIDO DE HOME PAGE
+// ============================================
+
+model HomePageContent {
+  id        String   @id @default(cuid())
+  isActive  Boolean  @default(true)
+
+  // Configuración general
+  logoUrl         String? @default("/ola-logo.JPG")  // Logo del sitio (almacenado en Supabase Storage)
+  heroTitle       String  @default("Descubre lo mejor de Milagro")
+  heroSubtitle    String  @default("Tu marketplace local con los mejores negocios y productos")
+  heroCtaText     String  @default("Explorar ahora")
+  heroCtaLink     String  @default("/negocios")
+
+  // Relaciones
+  sliderItems     SliderItem[]
+  featuredCategories FeaturedCategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("home_page_contents")
+}
+
+model SliderItem {
+  id        String   @id @default(cuid())
+
+  homePageId String
+  homePage   HomePageContent @relation(fields: [homePageId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  imageUrl    String
+  link        String?
+  buttonText  String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([homePageId])
+  @@map("slider_items")
+}
+
+model FeaturedCategory {
+  id        String   @id @default(cuid())
+
+  homePageId String
+  homePage   HomePageContent @relation(fields: [homePageId], references: [id], onDelete: Cascade)
+
+  // Referencia a categoría de WooCommerce
+  wooCategoryId Int
+
+  name       String
+  slug       String
+  icon       String?  // Emoji o icono
+  order      Int      @default(0)
+  isActive   Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([homePageId])
+  @@index([wooCategoryId])
+  @@map("featured_categories")
+}
