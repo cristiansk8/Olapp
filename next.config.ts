@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: path.join(__dirname, '..'),
+  // outputFileTracingRoot no es necesario para proyectos Next.js estándar en Vercel
 };
 
 export default nextConfig;
