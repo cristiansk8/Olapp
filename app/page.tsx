@@ -151,7 +151,7 @@ export default async function Home() {
                       <form
                         action={async () => {
                           'use server'
-                          const { prisma } = await import('@/lib/prisma')
+                          const { default: prisma } = await import('@/lib/prisma')
                           const { getCurrentUser } = await import('@/lib/sync-user')
 
                           const currentUser = await getCurrentUser()
