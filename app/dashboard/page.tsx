@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/sync-user'
 import { prisma } from '@/lib/prisma'
 
+// Forzar renderizado dinámico
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 

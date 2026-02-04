@@ -4,6 +4,9 @@ import { getCurrentUser } from '@/lib/sync-user'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 
+// Forzar renderizado dinámico
+export const dynamic = 'force-dynamic'
+
 export default async function NegociosPage() {
   const supabase = await createClient()
 

@@ -4,6 +4,9 @@ import { getCurrentUser } from '@/lib/sync-user'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 
+// Forzar renderizado dinámico
+export const dynamic = 'force-dynamic'
+
 async function getPendingBusinesses() {
   return await prisma.business.findMany({
     where: { status: 'PENDING' },

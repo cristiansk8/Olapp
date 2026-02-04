@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma'
 import { getParentCategories } from '@/lib/woocommerce'
 import { BusinessForm } from './business-form'
 
+// Forzar renderizado dinámico
+export const dynamic = 'force-dynamic'
+
 export default async function NuevoNegocioPage() {
   const supabase = await createClient()
 

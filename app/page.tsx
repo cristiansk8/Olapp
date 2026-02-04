@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { HomeSlider } from '@/components/HomeSlider'
 import { CategoryCarousel } from '@/components/CategoryCarousel'
 
+// Forzar renderizado dinámico para evitar errores de build
+export const dynamic = 'force-dynamic'
+
 export default async function Home() {
   const supabase = await createClient()
   const {

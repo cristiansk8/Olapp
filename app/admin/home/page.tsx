@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { HomeForm } from './home-form'
 
+// Forzar renderizado dinámico
+export const dynamic = 'force-dynamic'
+
 async function getHomeContent() {
   const content = await prisma.homePageContent.findFirst({
     where: { isActive: true },
