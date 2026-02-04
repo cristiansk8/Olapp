@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { prisma } from '../lib/prisma'
+import prisma from '../lib/prisma'
 
 // Mapeo correcto de wooCategoryId a nombre
 const CORRECT_NAMES: Record<number, string> = {

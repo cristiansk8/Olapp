@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { prisma } from '../lib/prisma'
+import prisma from '../lib/prisma'
 
 // IDs correctos de las categorías padre en WooCommerce
 const VALID_CATEGORY_IDS = [
