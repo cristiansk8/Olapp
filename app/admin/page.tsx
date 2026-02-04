@@ -276,11 +276,6 @@ export default async function AdminPage() {
                       type="submit"
                       name="action"
                       value="reject"
-                      onClick={() => {
-                        if (!confirm(`¿Estás seguro de que quieres desvalidar el negocio "${business.name}"? Esta acción lo marcará como rechazado.`)) {
-                          return false
-                        }
-                      }}
                       className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-lg transition"
                     >
                       ❌ Desvalidar
