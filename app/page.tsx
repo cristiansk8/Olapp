@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/sync-user'
 import Link from 'next/link'

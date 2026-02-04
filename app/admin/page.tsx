@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/sync-user'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import Link from 'next/link'
 
 // Forzar renderizado dinámico

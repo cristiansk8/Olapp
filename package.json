@@ -15,15 +15,14 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.3.0",
-    "@prisma/client": "^7.3.0",
+    "@prisma/client": "^6.19.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/storage-js": "^2.93.3",
     "@supabase/supabase-js": "^2.93.1",
     "@woocommerce/woocommerce-rest-api": "^1.0.2",
     "next": "15.5.11",
     "pg": "^8.17.2",
-    "prisma": "^7.3.0",
+    "prisma": "^6.19.0",
     "react": "19",
     "react-dom": "19"
   },
