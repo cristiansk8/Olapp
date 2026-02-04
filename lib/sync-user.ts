@@ -1,4 +1,4 @@
-import { prisma } from './prisma'
+import prisma from './prisma'
 import { createClient } from './supabase/server'
 
 /**
