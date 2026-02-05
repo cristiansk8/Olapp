@@ -90,110 +90,54 @@ export default async function AdminPage() {
         {/* Pending Businesses */}
         <div className="bg-white dark:bg-primary-900 rounded-xl shadow-lg border border-primary-100 dark:border-primary-800 p-6">
           <h2 className="text-2xl font-bold text-primary-900 dark:text-white mb-6">
-            Negocios por Aprobar ({pendingBusinesses.length})
+            Negocios Nuevos ({pendingBusinesses.length})
           </h2>
 
           {pendingBusinesses.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">✅</div>
               <p className="text-primary-600 dark:text-primary-400">
-                No hay negocios pendientes de aprobación
+                No hay negocios nuevos por validar
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {pendingBusinesses.map((business: any) => (
                 <div
                   key={business.id}
-                  className="border border-primary-200 dark:border-primary-700 rounded-lg p-6 hover:border-primary-400 dark:hover:border-primary-600 transition"
+                  className="border border-primary-200 dark:border-primary-700 rounded-xl overflow-hidden hover:border-primary-400 dark:hover:border-primary-600 transition hover:shadow-lg"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-primary-900 dark:text-white mb-2">
-                        {business.name}
-                      </h3>
-                      <p className="text-primary-600 dark:text-primary-400 mb-3">
-                        {business.description}
-                      </p>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-primary-500 dark:text-primary-500">Dueño:</p>
-                          <p className="text-primary-900 dark:text-white font-medium">
-                            {business.owner.name || business.owner.email}
-                          </p>
-                          <p className="text-xs text-primary-500">{business.owner.email}</p>
-                        </div>
-
-                        <div>
-                          <p className="text-primary-500 dark:text-primary-500">Ubicación:</p>
-                          <p className="text-primary-900 dark:text-white font-medium">
-                            {business.address}
-                          </p>
-                          <p className="text-xs text-primary-500">{business.neighborhood}</p>
-                        </div>
-
-                        <div>
-                          <p className="text-primary-500 dark:text-primary-500">Contacto:</p>
-                          <p className="text-primary-900 dark:text-white font-medium">
-                            {business.phone}
-                          </p>
-                          {business.whatsapp && (
-                            <p className="text-xs text-primary-500">WhatsApp: {business.whatsapp}</p>
-                          )}
-                        </div>
-
-                        <div>
-                          <p className="text-primary-500 dark:text-primary-500">Slug:</p>
-                          <code className="text-xs bg-primary-100 dark:bg-primary-900 px-2 py-1 rounded">
-                            {business.slug}
-                          </code>
-                        </div>
-                      </div>
-
-                      {business.images && business.images.length > 0 && (
-                        <div className="mt-4">
-                          <p className="text-sm text-primary-500 dark:text-primary-500 mb-2">Imágenes:</p>
-                          <div className="flex gap-2">
-                            {business.images.slice(0, 3).map((img: string, idx: number) => (
-                              <img
-                                key={idx}
-                                src={img}
-                                alt={`Imagen ${idx + 1}`}
-                                className="w-20 h-20 object-cover rounded-lg border border-primary-200 dark:border-primary-700"
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  {/* Logo del negocio */}
+                  <div className="h-48 bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900 dark:to-secondary-900 flex items-center justify-center p-6">
+                    {business.logo ? (
+                      <img
+                        src={business.logo}
+                        alt={business.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    ) : (
+                      <div className="text-6xl">🏪</div>
+                    )}
                   </div>
 
-                  <form action={`/api/admin/businesses/${business.id}/approve`} method="POST" className="mt-6 flex gap-3">
-                    <button
-                      type="submit"
-                      name="action"
-                      value="approve"
-                      className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg transition"
-                    >
-                      ✅ Aprobar
-                    </button>
-                    <button
-                      type="submit"
-                      name="action"
-                      value="reject"
-                      className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-lg transition"
-                    >
-                      ❌ Rechazar
-                    </button>
-                    <Link
-                      href={`/negocios/${business.slug}`}
-                      target="_blank"
-                      className="bg-primary-100 dark:bg-primary-900 hover:bg-primary-200 text-primary-700 dark:text-primary-300 font-semibold px-6 py-2 rounded-lg transition"
-                    >
-                      Ver vista previa
-                    </Link>
-                  </form>
+                  {/* Información del negocio */}
+                  <div className="p-4">
+                    <h3 className="text-lg font-bold text-primary-900 dark:text-white mb-4">
+                      {business.name}
+                    </h3>
+
+                    {/* Botones de acción */}
+                    <form action={`/api/admin/businesses/${business.id}/approve`} method="POST" className="flex flex-col gap-2">
+                      <button
+                        type="submit"
+                        name="action"
+                        value="approve"
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-3 rounded-lg transition"
+                      >
+                        ✅ Validar
+                      </button>
+                    </form>
+                  </div>
                 </div>
               ))}
             </div>

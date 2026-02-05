@@ -117,7 +117,7 @@ export default async function Home() {
                 <div className="text-4xl animate-pulse">✨</div>
                 <div>
                   <h2 className="text-2xl font-bold text-amber-900 dark:text-amber-100">
-                    Nuevos Negocios Pendientes de Validación
+                    Negocios Nuevos
                   </h2>
                   <p className="text-amber-700 dark:text-amber-300">
                     Ayuda a tu comunidad confirmando que estos negocios existen
@@ -125,103 +125,98 @@ export default async function Home() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pendingBusinesses.map((business) => (
                   <div
                     key={business.id}
-                    className="bg-white dark:bg-primary-900 rounded-xl p-4 shadow-md hover:shadow-lg transition border border-amber-100 dark:border-amber-800/50"
+                    className="bg-white dark:bg-primary-900 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition border border-amber-100 dark:border-amber-800/50"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-primary-900 dark:text-white text-lg">
-                          {business.name}
-                        </h3>
-                      </div>
-                      <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-semibold px-2 py-1 rounded-full">
-                        {business.confirmationsCount}/{business.requiredConfirmations} confirmaciones
-                      </span>
+                    {/* Logo del negocio */}
+                    <div className="h-40 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center p-4">
+                      {business.logo ? (
+                        <img
+                          src={business.logo}
+                          alt={business.name}
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      ) : (
+                        <div className="text-5xl">🏪</div>
+                      )}
                     </div>
 
-                    <div className="space-y-1 text-sm text-primary-700 dark:text-primary-300 mb-3">
-                      <p>📍 {business.neighborhood}</p>
-                      <p>📞 {business.phone}</p>
-                    </div>
+                    {/* Información del negocio */}
+                    <div className="p-4">
+                      <h3 className="font-bold text-primary-900 dark:text-white text-lg mb-4">
+                        {business.name}
+                      </h3>
 
-                    {user && user.id !== business.ownerId && (
-                      <form
-                        action={async () => {
-                          'use server'
-                          const { default: prisma } = await import('@/lib/prisma')
-                          const { getCurrentUser } = await import('@/lib/sync-user')
+                      {user && user.id !== business.ownerId && (
+                        <form
+                          action={async () => {
+                            'use server'
+                            const { default: prisma } = await import('@/lib/prisma')
+                            const { getCurrentUser } = await import('@/lib/sync-user')
 
-                          const currentUser = await getCurrentUser()
-                          if (!currentUser) return
+                            const currentUser = await getCurrentUser()
+                            if (!currentUser) return
 
-                          // Verificar si ya confirmó
-                          const existing = await prisma.businessVerification.findFirst({
-                            where: {
-                              businessId: business.id,
-                              userId: currentUser.id,
-                            },
-                          })
-
-                          if (existing) return
-
-                          // Crear confirmación
-                          await prisma.businessVerification.create({
-                            data: {
-                              businessId: business.id,
-                              userId: currentUser.id,
-                            },
-                          })
-
-                          // Actualizar contador
-                          const confirmations = await prisma.businessVerification.count({
-                            where: { businessId: business.id },
-                          })
-
-                          // Si alcanza el umbral, verificar el negocio
-                          if (confirmations >= business.requiredConfirmations) {
-                            await prisma.business.update({
-                              where: { id: business.id },
-                              data: { status: 'VERIFIED', confirmationsCount: confirmations },
+                            // Verificar si ya confirmó
+                            const existing = await prisma.businessVerification.findFirst({
+                              where: {
+                                businessId: business.id,
+                                userId: currentUser.id,
+                              },
                             })
-                          } else {
-                            await prisma.business.update({
-                              where: { id: business.id },
-                              data: { confirmationsCount: confirmations },
+
+                            if (existing) return
+
+                            // Crear confirmación
+                            await prisma.businessVerification.create({
+                              data: {
+                                businessId: business.id,
+                                userId: currentUser.id,
+                              },
                             })
-                          }
-                        }}
-                      >
-                        <button
-                          type="submit"
-                          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2"
+
+                            // Actualizar contador
+                            const confirmations = await prisma.businessVerification.count({
+                              where: { businessId: business.id },
+                            })
+
+                            // Si alcanza el umbral, verificar el negocio
+                            if (confirmations >= business.requiredConfirmations) {
+                              await prisma.business.update({
+                                where: { id: business.id },
+                                data: { status: 'VERIFIED', confirmationsCount: confirmations },
+                              })
+                            } else {
+                              await prisma.business.update({
+                                where: { id: business.id },
+                                data: { confirmationsCount: confirmations },
+                              })
+                            }
+                          }}
                         >
-                          <span>✓</span> Confirmar que existe
-                        </button>
-                      </form>
-                    )}
+                          <button
+                            type="submit"
+                            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition flex items-center justify-center gap-2"
+                          >
+                            <span>✓</span> Confirmar que existe
+                          </button>
+                        </form>
+                      )}
 
-                    {!user && (
-                      <div className="text-center text-sm text-amber-700 dark:text-amber-300 py-2">
-                        <Link href="/login" className="underline font-semibold">
-                          Inicia sesión
-                        </Link>{' '}
-                        para confirmar
-                      </div>
-                    )}
+                      {!user && (
+                        <div className="text-center text-sm text-amber-700 dark:text-amber-300 py-2">
+                          <Link href="/login" className="underline font-semibold">
+                            Inicia sesión
+                          </Link>{' '}
+                          para confirmar
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
-              </div>
-
-              <div className="mt-6 text-center">
-                <Link
-                  href="/negocios?status=PENDING"
-                  className="text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 font-semibold underline"
-                >
-                  Ver todos los negocios pendientes →
-                </Link>
               </div>
             </div>
           </div>
